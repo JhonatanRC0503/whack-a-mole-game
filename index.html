@@ -506,6 +506,10 @@
         // FUNCIÓN: Iniciar el juego
         // ============================================
         function startGame() {
+            // Limpiar intervalos previos por si acaso
+            clearInterval(moleInterval);
+            clearInterval(timerInterval);
+            
             // Reiniciar variables
             score = 0;
             timeLeft = 45;

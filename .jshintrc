@@ -1,0 +1,24 @@
+{
+  "esversion": 6,
+  "browser": true,
+  "devel": true,
+  "undef": true,
+  "unused": true,
+  "curly": true,
+  "eqeqeq": true,
+  "freeze": true,
+  "latedef": "nofunc",
+  "nonbsp": true,
+  "nonew": true,
+  "quotmark": "single",
+  "strict": false,
+  "maxcomplexity": 10,
+  "maxdepth": 3,
+  "maxparams": 5,
+  "maxstatements": 50,
+  "maxlen": 120,
+  "globals": {
+    "AudioContext": true,
+    "webkitAudioContext": true
+  }
+}

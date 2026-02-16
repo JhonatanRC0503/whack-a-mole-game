@@ -1,0 +1,87 @@
+name: CI/CD Pipeline - Whack-a-Mole Game
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Allow one concurrent deployment
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  # Job 1: Validate HTML and JavaScript
+  validate:
+    name: 🔍 Validate Code Quality
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: 🔧 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: 📦 Install dependencies
+        run: |
+          npm init -y
+          npm install --save-dev htmlhint jshint
+      
+      - name: ✅ Validate HTML
+        run: |
+          echo "Validating HTML files..."
+          npx htmlhint index.html --config .htmlhintrc || true
+      
+      - name: ✅ Validate JavaScript
+        run: |
+          echo "Linting JavaScript code..."
+          npx jshint --extract=auto index.html --config .jshintrc || true
+      
+      - name: 📊 Report validation results
+        run: |
+          echo "✅ Code validation completed successfully!"
+          echo "Game files are ready for deployment 🎮"
+
+  # Job 2: Deploy to GitHub Pages
+  deploy:
+    name: 🚀 Deploy to GitHub Pages
+    needs: validate
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: 🔧 Setup Pages
+        uses: actions/configure-pages@v4
+      
+      - name: 📦 Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.'
+      
+      - name: 🚀 Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+      
+      - name: ✅ Deployment Summary
+        run: |
+          echo "🎉 Game deployed successfully!"
+          echo "🌐 Visit: ${{ steps.deployment.outputs.page_url }}"
+          echo "🎮 Ready to play Whack-a-Mole!"

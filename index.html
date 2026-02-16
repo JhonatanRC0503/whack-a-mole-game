@@ -475,6 +475,11 @@
         // FUNCIÓN: Actualizar el temporizador
         // ============================================
         function updateTimer() {
+            // Solo actualizar si el juego está activo
+            if (!gameActive) {
+                return;
+            }
+            
             timeLeft--;
             timeElement.textContent = timeLeft;
             
@@ -586,12 +591,18 @@
         // FUNCIÓN: Reiniciar el juego
         // ============================================
         function resetGame() {
-            // Detener intervalos si están activos
-            clearInterval(moleInterval);
-            clearInterval(timerInterval);
-            
-            // Desactivar el juego
+            // Desactivar el juego PRIMERO (crucial para detener updateTimer)
             gameActive = false;
+            
+            // Detener intervalos si están activos
+            if (moleInterval) {
+                clearInterval(moleInterval);
+                moleInterval = null;
+            }
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
             
             // Resetear valores
             score = 0;

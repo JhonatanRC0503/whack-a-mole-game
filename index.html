@@ -582,13 +582,41 @@
         // FUNCIÓN: Reiniciar el juego
         // ============================================
         function resetGame() {
-            // Terminar el juego actual
-            endGame();
+            // Detener intervalos si están activos
+            clearInterval(moleInterval);
+            clearInterval(timerInterval);
             
-            // Iniciar un nuevo juego inmediatamente
-            setTimeout(() => {
-                startGame();
-            }, 300);
+            // Desactivar el juego
+            gameActive = false;
+            
+            // Resetear valores
+            score = 0;
+            timeLeft = 45;
+            currentMolePosition = null;
+            
+            // Actualizar interfaz
+            scoreElement.textContent = score;
+            timeElement.textContent = timeLeft;
+            gameOverMessage.classList.remove('show');
+            
+            // Limpiar el tablero
+            const cells = document.querySelectorAll('.cell');
+            cells.forEach(cell => {
+                cell.classList.remove('has-mole');
+                cell.innerHTML = '';
+                cell.style.cursor = 'pointer';
+                cell.style.opacity = '1';
+            });
+            
+            // Habilitar botón de inicio
+            startButton.disabled = false;
+            startButton.textContent = 'Iniciar Juego';
+            
+            // Deshabilitar botón de reinicio
+            resetButton.disabled = true;
+            
+            // Habilitar botones de dificultad para que puedas cambiarla
+            difficultyButtons.forEach(btn => btn.disabled = false);
         }
 
         // ============================================

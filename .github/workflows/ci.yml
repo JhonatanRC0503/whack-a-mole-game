@@ -18,9 +18,44 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # Job 1: Validate HTML and JavaScript
+  # Job 1: Run automated tests
+  test:
+    name: 🧪 Run Automated Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: 🔧 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      
+      - name: 📦 Install dependencies
+        run: npm install
+      
+      - name: 🧪 Run Jest tests with coverage
+        run: npm test -- --coverage
+      
+      - name: 📊 Upload coverage reports
+        uses: codecov/codecov-action@v3
+        with:
+          files: ./coverage/lcov.info
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: false
+      
+      - name: 📈 Test Summary
+        run: |
+          echo "✅ All tests passed successfully!"
+          echo "📊 Coverage report generated"
+          echo "🎯 Game logic validated"
+
+  # Job 2: Validate HTML and JavaScript
   validate:
     name: 🔍 Validate Code Quality
+    needs: test
     runs-on: ubuntu-latest
     
     steps:

@@ -1,0 +1,48 @@
+{
+  "name": "whack-a-mole-game",
+  "version": "1.0.0",
+  "description": "Browser-based Whack-a-Mole game with vanilla JavaScript",
+  "main": "index.html",
+  "scripts": {
+    "test": "jest --coverage --verbose",
+    "test:watch": "jest --watch",
+    "test:ci": "jest --ci --coverage --maxWorkers=2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JhonatanRC0503/whack-a-mole-game.git"
+  },
+  "keywords": [
+    "game",
+    "whack-a-mole",
+    "javascript",
+    "html5",
+    "browser-game"
+  ],
+  "author": "Jhonatan Rodriguez",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/JhonatanRC0503/whack-a-mole-game/issues"
+  },
+  "homepage": "https://github.com/JhonatanRC0503/whack-a-mole-game#readme",
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0",
+    "jsdom": "^24.0.0"
+  },
+  "jest": {
+    "testEnvironment": "jsdom",
+    "coverageDirectory": "coverage",
+    "collectCoverageFrom": [
+      "index.html"
+    ],
+    "coveragePathIgnorePatterns": [
+      "/node_modules/"
+    ],
+    "testMatch": [
+      "**/*.test.js"
+    ],
+    "verbose": true,
+    "testTimeout": 10000
+  }
+}

@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Whack-a-Mole - Golpea al Topo</title>
+    <style>
+        /* Estilos generales del cuerpo */
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            color: #fff;
+        }
+
+        /* Contenedor principal */
+        .game-container {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Título del juego */
+        h1 {
+            margin: 0 0 20px 0;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Panel de información (puntaje y tiempo) */
+        .info-panel {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 30px;
+            gap: 40px;
+        }
+
+        .info-item {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 1.3em;
+            font-weight: bold;
+        }
+
+        .info-item span {
+            display: block;
+            font-size: 2em;
+            margin-top: 5px;
+            color: #ffd700;
+        }
+
+        /* Cuadrícula del juego 3x3 */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(3, 120px);
+            grid-template-rows: repeat(3, 120px);
+            gap: 15px;
+            margin: 0 auto 30px;
+        }
+
+        /* Cada celda del tablero */
+        .cell {
+            background: #8B4513;
+            border: 4px solid #654321;
+            border-radius: 50%;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.2s ease;
+            box-shadow: inset 0 -5px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .cell:hover {
+            transform: scale(1.05);
+        }
+
+        /* Celda cuando tiene el topo */
+        .cell.has-mole {
+            background: #D2691E;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.6);
+        }
+
+        /* El topo (emoji) */
+        .mole {
+            font-size: 60px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            animation: pop 0.3s ease, bounce 0.6s ease-in-out infinite;
+        }
+
+        /* Animación de aparición del topo */
+        @keyframes pop {
+            0% {
+                transform: translate(-50%, -50%) scale(0) rotate(-180deg);
+            }
+            50% {
+                transform: translate(-50%, -50%) scale(1.2) rotate(10deg);
+            }
+            100% {
+                transform: translate(-50%, -50%) scale(1) rotate(0deg);
+            }
+        }
+
+        /* Animación de rebote continuo del topo */
+        @keyframes bounce {
+            0%, 100% {
+                transform: translate(-50%, -50%) translateY(0) scale(1);
+            }
+            50% {
+                transform: translate(-50%, -50%) translateY(-8px) scale(1.05);
+            }
+        }
+
+        /* Botón de inicio */
+        .start-button {
+            background: #ffd700;
+            color: #333;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.3em;
+            font-weight: bold;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        .start-button:hover {
+            background: #ffed4e;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+        }
+
+        .start-button:active {
+            transform: translateY(0);
+        }
+
+        .start-button:disabled {
+            background: #666;
+            color: #999;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Mensaje de fin de juego */
+        .game-over-message {
+            font-size: 2em;
+            font-weight: bold;
+            margin-top: 20px;
+            color: #ffd700;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            display: none;
+        }
+
+        .game-over-message.show {
+            display: block;
+            animation: pulse 0.5s ease;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.1);
+            }
+        }
+
+        /* Efecto de click acertado */
+        @keyframes hit {
+            0% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(0.8);
+                background: #FFD700;
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        .cell.hit {
+            animation: hit 0.3s ease;
+        }
+
+        /* Selector de dificultad */
+        .difficulty-selector {
+            margin-bottom: 20px;
+        }
+
+        .difficulty-selector h3 {
+            margin: 0 0 10px 0;
+            font-size: 1.2em;
+            color: #ffd700;
+        }
+
+        .difficulty-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .difficulty-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: #fff;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            padding: 10px 20px;
+            font-size: 1em;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .difficulty-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .difficulty-btn.active {
+            background: #4CAF50;
+            border-color: #45a049;
+            box-shadow: 0 0 15px rgba(76, 175, 80, 0.6);
+        }
+
+        .difficulty-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Colores específicos por dificultad */
+        .difficulty-btn.easy.active {
+            background: #4CAF50;
+            border-color: #45a049;
+        }
+
+        .difficulty-btn.medium.active {
+            background: #FF9800;
+            border-color: #F57C00;
+        }
+
+        .difficulty-btn.hard.active {
+            background: #F44336;
+            border-color: #D32F2F;
+        }
+
+        /* Contenedor de botones */
+        .button-container {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        /* Botón de reinicio */
+        .reset-button {
+            background: #FF5722;
+            color: #fff;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.1em;
+            font-weight: bold;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        .reset-button:hover {
+            background: #E64A19;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+        }
+
+        .reset-button:active {
+            transform: translateY(0);
+        }
+
+        .reset-button:disabled {
+            background: #666;
+            color: #999;
+            cursor: not-allowed;
+            transform: none;
+            opacity: 0.5;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>🎯 Whack-a-Mole 🐹</h1>
+        
+        <!-- Selector de dificultad -->
+        <div class="difficulty-selector">
+            <h3>⚡ Selecciona Dificultad</h3>
+            <div class="difficulty-buttons">
+                <button class="difficulty-btn easy" data-difficulty="easy">😊 Fácil</button>
+                <button class="difficulty-btn medium active" data-difficulty="medium">😐 Medio</button>
+                <button class="difficulty-btn hard" data-difficulty="hard">😈 Difícil</button>
+            </div>
+        </div>
+        
+        <!-- Panel de información con puntaje y tiempo -->
+        <div class="info-panel">
+            <div class="info-item">
+                <div>Puntaje</div>
+                <span id="score">0</span>
+            </div>
+            <div class="info-item">
+                <div>Tiempo</div>
+                <span id="time">45</span>
+            </div>
+        </div>
+
+        <!-- Cuadrícula del juego (se genera dinámicamente) -->
+        <div class="grid" id="grid"></div>
+
+        <!-- Botones de control -->
+        <div class="button-container">
+            <button class="start-button" id="startButton">Iniciar Juego</button>
+            <button class="reset-button" id="resetButton" disabled>🔄 Reiniciar</button>
+        </div>
+
+        <!-- Mensaje de fin de juego -->
+        <div class="game-over-message" id="gameOverMessage">
+            🎉 ¡Juego Terminado! 🎉
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // VARIABLES GLOBALES
+        // ============================================
+        let score = 0;                    // Puntaje del jugador
+        let timeLeft = 45;                // Tiempo restante en segundos
+        let currentMolePosition = null;   // Posición actual del topo (índice de celda)
+        let gameActive = false;           // Estado del juego (activo/inactivo)
+        let moleInterval = null;          // Intervalo para mover el topo
+        let timerInterval = null;         // Intervalo para el temporizador
+        let currentDifficulty = 'medium'; // Dificultad actual (easy, medium, hard)
+        
+        // Configuración de velocidades por dificultad
+        const difficultySettings = {
+            easy: { speed: 1500, label: 'Fácil' },      // 1.5 segundos
+            medium: { speed: 1000, label: 'Medio' },    // 1 segundo
+            hard: { speed: 500, label: 'Difícil' }      // 0.5 segundos
+        };
+
+        // Referencias a elementos del DOM
+        const gridElement = document.getElementById('grid');
+        const scoreElement = document.getElementById('score');
+        const timeElement = document.getElementById('time');
+        const startButton = document.getElementById('startButton');
+        const resetButton = document.getElementById('resetButton');
+        const gameOverMessage = document.getElementById('gameOverMessage');
+        const difficultyButtons = document.querySelectorAll('.difficulty-btn');
+
+        // ============================================
+        // FUNCIÓN: Generar efecto de sonido al golpear
+        // ============================================
+        function playHitSound() {
+            // Crear contexto de audio
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            
+            // Crear oscilador (genera el tono)
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            // Configurar el sonido
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            // Tono ascendente alegre
+            oscillator.frequency.setValueAtTime(400, audioContext.currentTime);
+            oscillator.frequency.exponentialRampToValueAtTime(800, audioContext.currentTime + 0.1);
+            
+            // Tipo de onda
+            oscillator.type = 'sine';
+            
+            // Volumen con fade out
+            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.15);
+            
+            // Reproducir y detener
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.15);
+        }
+
+        // ============================================
+        // FUNCIÓN: Crear la cuadrícula 3x3
+        // ============================================
+        function createGrid() {
+            // Limpiar la cuadrícula existente
+            gridElement.innerHTML = '';
+            
+            // Crear 9 celdas (3x3)
+            for (let i = 0; i < 9; i++) {
+                const cell = document.createElement('div');
+                cell.classList.add('cell');
+                cell.dataset.index = i; // Guardar el índice de la celda
+                
+                // Agregar evento de click a cada celda
+                cell.addEventListener('click', handleCellClick);
+                
+                gridElement.appendChild(cell);
+            }
+        }
+
+        // ============================================
+        // FUNCIÓN: Mover el topo a una posición aleatoria
+        // ============================================
+        function moveMole() {
+            const cells = document.querySelectorAll('.cell');
+            
+            // Remover el topo de la posición actual
+            if (currentMolePosition !== null) {
+                cells[currentMolePosition].classList.remove('has-mole');
+                cells[currentMolePosition].innerHTML = '';
+            }
+            
+            // Generar una nueva posición aleatoria diferente a la actual
+            let newPosition;
+            do {
+                newPosition = Math.floor(Math.random() * 9);
+            } while (newPosition === currentMolePosition && cells.length > 1);
+            
+            // Colocar el topo en la nueva posición
+            currentMolePosition = newPosition;
+            cells[newPosition].classList.add('has-mole');
+            cells[newPosition].innerHTML = '<div class="mole">🐹</div>';
+        }
+
+        // ============================================
+        // FUNCIÓN: Manejar el click en una celda
+        // ============================================
+        function handleCellClick(event) {
+            // Solo procesar clicks si el juego está activo
+            if (!gameActive) return;
+            
+            const clickedCell = event.currentTarget;
+            const clickedIndex = parseInt(clickedCell.dataset.index);
+            
+            // Verificar si se hizo click en el topo
+            if (clickedIndex === currentMolePosition) {
+                // Incrementar puntaje
+                score++;
+                scoreElement.textContent = score;
+                
+                // Reproducir sonido de acierto
+                playHitSound();
+                
+                // Efecto visual de acierto
+                clickedCell.classList.add('hit');
+                setTimeout(() => {
+                    clickedCell.classList.remove('hit');
+                }, 300);
+                
+                // Mover el topo inmediatamente a otra posición
+                moveMole();
+            }
+        }
+
+        // ============================================
+        // FUNCIÓN: Actualizar el temporizador
+        // ============================================
+        function updateTimer() {
+            timeLeft--;
+            timeElement.textContent = timeLeft;
+            
+            // Verificar si el tiempo llegó a 0
+            if (timeLeft <= 0) {
+                endGame();
+            }
+        }
+
+        // ============================================
+        // FUNCIÓN: Cambiar dificultad
+        // ============================================
+        function setDifficulty(difficulty) {
+            // Solo permitir cambio si el juego no está activo
+            if (gameActive) return;
+            
+            currentDifficulty = difficulty;
+            
+            // Actualizar botones de dificultad
+            difficultyButtons.forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.dataset.difficulty === difficulty) {
+                    btn.classList.add('active');
+                }
+            });
+        }
+
+        // ============================================
+        // FUNCIÓN: Iniciar el juego
+        // ============================================
+        function startGame() {
+            // Reiniciar variables
+            score = 0;
+            timeLeft = 45;
+            currentMolePosition = null;
+            gameActive = true;
+            
+            // Obtener velocidad según dificultad
+            const moleSpeed = difficultySettings[currentDifficulty].speed;
+            
+            // Actualizar interfaz
+            scoreElement.textContent = score;
+            timeElement.textContent = timeLeft;
+            gameOverMessage.classList.remove('show');
+            startButton.disabled = true;
+            startButton.textContent = `Jugando... (${difficultySettings[currentDifficulty].label})`;
+            
+            // Habilitar botón de reinicio
+            resetButton.disabled = false;
+            
+            // Deshabilitar botones de dificultad durante el juego
+            difficultyButtons.forEach(btn => btn.disabled = true);
+            
+            // Crear la cuadrícula
+            createGrid();
+            
+            // Iniciar el primer topo
+            moveMole();
+            
+            // Configurar intervalo para mover el topo según la dificultad
+            moleInterval = setInterval(moveMole, moleSpeed);
+            
+            // Configurar intervalo para actualizar el temporizador cada 1 segundo
+            timerInterval = setInterval(updateTimer, 1000);
+        }
+
+        // ============================================
+        // FUNCIÓN: Terminar el juego
+        // ============================================
+        function endGame() {
+            // Desactivar el juego
+            gameActive = false;
+            
+            // Detener intervalos
+            clearInterval(moleInterval);
+            clearInterval(timerInterval);
+            
+            // Remover el topo del tablero
+            const cells = document.querySelectorAll('.cell');
+            if (currentMolePosition !== null) {
+                cells[currentMolePosition].classList.remove('has-mole');
+                cells[currentMolePosition].innerHTML = '';
+            }
+            
+            // Actualizar interfaz
+            timeElement.textContent = '0';
+            gameOverMessage.classList.add('show');
+            startButton.disabled = false;
+            startButton.textContent = 'Jugar de Nuevo';
+            
+            // Deshabilitar botón de reinicio
+            resetButton.disabled = true;
+            
+            // Habilitar botones de dificultad
+            difficultyButtons.forEach(btn => btn.disabled = false);
+            
+            // Deshabilitar clicks en las celdas (opcional, ya que gameActive lo maneja)
+            cells.forEach(cell => {
+                cell.style.cursor = 'not-allowed';
+                cell.style.opacity = '0.6';
+            });
+        }
+
+        // ============================================
+        // FUNCIÓN: Reiniciar el juego
+        // ============================================
+        function resetGame() {
+            // Terminar el juego actual
+            endGame();
+            
+            // Iniciar un nuevo juego inmediatamente
+            setTimeout(() => {
+                startGame();
+            }, 300);
+        }
+
+        // ============================================
+        // EVENTOS: Click en botones
+        // ============================================
+        startButton.addEventListener('click', startGame);
+        resetButton.addEventListener('click', resetGame);
+        
+        // Agregar eventos a los botones de dificultad
+        difficultyButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                setDifficulty(btn.dataset.difficulty);
+            });
+        });
+
+        // ============================================
+        // INICIALIZACIÓN: Crear la cuadrícula al cargar la página
+        // ============================================
+        createGrid();
+    </script>
+</body>
+</html>
